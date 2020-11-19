@@ -21,6 +21,10 @@
     include_role:
       name: roles/ca
       tasks_from: generate_kube_scheduler_config.yml
+  - name: generate admin.kubeconfig
+    include_role:
+      name: roles/ca
+      tasks_from: generate_admin_config.yml
 - hosts: vm_worker_nodes
   tasks:    
   - name: Copy Remote-To-Remote (from vm-master-1 to worker-nodes)
@@ -33,7 +37,7 @@
     include_role:
       name: roles/ca
       tasks_from: copy_certs_and_configs_masters.yml
-- hosts: vm_load_balancers
+- hosts: vm_load_balancer
   tasks:    
   - name: Copy Remote-To-Remote (from vm-master-1 to loadbalancers)
     include_role:
