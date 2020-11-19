@@ -1,0 +1,7 @@
+---
+# tasks file for ca
+- name: Copy openssl.conf to allow for alternate names
+  copy: 
+    src: files/openssl.conf
+    dest: "/home/{{ ansible_ssh_user }}/openssl.conf"
+    
