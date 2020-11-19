@@ -5,14 +5,13 @@
   args:
     chdir: "/home/{{ ansible_ssh_user }}"
     creates: "/home/{{ ansible_ssh_user }}/kube-apiserver.key"
-
 - name: Create CSR using the private key
-  command: openssl req -new -key kube-apiserver.key -subj "/CN=system:kube-apiserver" -out kube-apiserver.csr
+  command: openssl req -new -key kube-apiserver.key -subj "/CN=system:kube-apiserver" -out kube-apiserver.csr -config openssl.conf
   args:
     chdir: "/home/{{ ansible_ssh_user }}"
     creates: "/home/{{ ansible_ssh_user }}/kube-apiserver.csr"
 - name: Sign certificate for kube-apiserver user using CA servers private key
-  command: openssl x509 -req -in kube-apiserver.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-apiserver.crt -days 1000
+  command: openssl x509 -req -in kube-apiserver.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-apiserver.crt -extensions v3_req -extfile openssl.conf -days 1000
   args: 
     chdir: "/home/{{ ansible_ssh_user }}"
     creates: "/home/{{ ansible_ssh_user }}/kube-apiserver.crt"
