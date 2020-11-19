@@ -9,7 +9,7 @@
     include_role:
       name: roles/ca
       tasks_from: main.yml
-- hosts: vm_worker_nodes
+- hosts: vm_nodes
   tasks:    
   - name: Copy Remote-To-Remote (from vm-master-1 to worker-nodes)
     include_role:
