@@ -9,6 +9,10 @@
     include_role:
       name: roles/ca
       tasks_from: main.yml
+  - name: generate kube-proxy.kubeconfig
+    include_role:
+      name: roles/ca
+      tasks_from: generate_kube_proxy_config.yml
 - hosts: vm_nodes
   tasks:    
   - name: Copy Remote-To-Remote (from vm-master-1 to worker-nodes)
