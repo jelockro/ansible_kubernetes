@@ -1,0 +1,3 @@
+---
+# vars file for vagrant
+workspace: "{{ home_dir }}/tmp"

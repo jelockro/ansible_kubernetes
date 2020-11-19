@@ -1,0 +1,11 @@
+---
+# defaults file for kube_the_hardway_vbox
+wsl_clone_dir: "/mnt/c/Users/jlock/khw"
+windows_clone_dir: "C:\\Users\\jlock\\khw"
+git_repo_url: "https://github.com/mmumshad/kubernetes-the-hard-way.git"
+insert_this: "vb.customize [ \"modifyvm\", :id, \"--uartmode1\", \"disconnected\" ]"
+find_this: 'vb.cpus = 1'
+directories_to_nuke:
+  - .vagrant
+  - .vagrant.d
+  - .Virtualbox

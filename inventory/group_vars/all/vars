@@ -1,0 +1,7 @@
+ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+ssh_identity: "{{ vault_ssh_identity }}"
+ansible_user: "{{ vault_ansible_user }}"
+ansible_password: "{{ vault_ansible_password }}"
+ansible_become_password: "{{ vault_ansible_become_password }}"
+sshpass: "{{ ansible_password }}"
+artifactory_password: "{{ vault_artifactory_password }}"

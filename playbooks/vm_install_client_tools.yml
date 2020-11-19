@@ -1,0 +1,89 @@
+---
+## The server needs ssh-pass in order to connect with passwords
+### This play is idempotent, but only checks the presence of /etc/kubernetes/kubelet.conf
+### It could also verify by running kubectl get nodes and checking hostnames
+### looking for ports, and probably some other things.
+- hosts: vm_mom
+  vars: 
+    host_key_checking: no
+    kubectl_url:  https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl
+  gather_facts: false
+  tasks:
+  - name: Generate ~/.ssh/id_rsa
+    command : "ssh-keygen -q -t rsa -f /home/{{ ansible_ssh_user }}/.ssh/id_rsa -C \"\" -N \"\""
+    args:
+      creates: "/home/{{ ansible_ssh_user }}/.ssh/id_rsa"
+  - name: Catpure public key as variable
+    shell: cat ~/.ssh/id_rsa.pub
+    register: mom_public_key
+  - local_action: copy content="{{ mom_public_key.stdout  }} vagrant@master-1" dest=/home/jlock/master-1.pem
+  - debug: 
+      msg: "{{ mom_public_key.stdout }} vagrant@master-1"
+# Start working with kubectl.
+  - name: stat /home/vagrant/kubectl
+    stat: path=~/kubectl
+    register: home_kubectl_stat
+  - debug:
+      msg: home kubectl exists
+    when: home_kubectl_stat.stat.exists
+
+  - name: stat /usr/local/bin/kubectl
+    stat: path=/usr/local/bin/kubectl
+    register: usr_local_bin_kubectl_stat
+
+  - name: Install Kubectl if not in home directory or /usr/local/bin
+    get_url: url={{ kubectl_url }} dest=~/kubectl
+    when: 
+      - home_kubectl_stat.stat.exists == False
+      - usr_local_bin_kubectl_stat.stat.exists == False
+    register: download_kubectl
+ 
+  - name: chmod ~/kubectl
+    file: 
+      path: ~/kubectl 
+      mode: u+x
+    when: home_kubectl_stat.stat.exists or download_kubectl.changed
+    register: chmod_kubectl
+
+  - name: copy kubectl to usr/bin
+    become: yes
+    copy: 
+      remote_src: true
+      src: /home/vagrant/kubectl 
+      dest: /usr/local/bin
+      mode: u+x
+    when: 
+      - usr_local_bin_kubectl_stat.stat.exists == False 
+      - chmod_kubectl.changed or home_kubectl_stat.stat.executable == True
+    register: copy_kubectl
+
+  - name: remove ~/kubectl
+    file: 
+      path: ~/kubectl 
+      state: absent
+    when: copy_kubectl.changed
+  - name: register output of kubectl --version
+    shell: kubectl version --client
+    become: yes
+    register: kubectl_version
+  - debug:
+      msg: "{{ kubectl_version.stdout }}"
+
+
+
+    
+# - hosts: vm_load_balancer, vm_worker_nodes
+#   vars:
+#     master_1_pem: "{{ lookup('file', '~/master-1.pem') }}"
+#   tasks:
+#   - name: Ensure authorized file exists with new key
+#     lineinfile:
+#       path: ~/.ssh/authorized_keys
+#       regexp: "{{ master_1_pem }}"
+#       line: "{{ master_1_pem }}"
+#       create: yes
+#   - name: Verify it worked
+#     shell: cat ~/.ssh/authorized_keys
+#     register: authorized_keys
+#   - debug:
+#       msg: "{{ authorized_keys.stdout }}"

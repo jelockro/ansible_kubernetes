@@ -1,0 +1,18 @@
+---
+# tasks file for jenkins
+- name: Updating apt-get repo and cache
+  apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+
+- name: Upgrading all apt packages
+  apt: upgrade=dist force_apt_get=yes
+
+- name: Installing OpenJDK-11-jre
+  apt: 
+    name: openjdk-11-jre
+
+- name: Find out what java there is
+  command: java --version
+  register: javaVersion
+
+- debug:
+  msg: {{ javaVersion }}.stdout

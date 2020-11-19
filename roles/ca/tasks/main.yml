@@ -1,0 +1,9 @@
+---
+# tasks file for ca
+
+- name: Include task list in play
+  import_tasks: ca_client_certificate.yml
+- name: Include task list in play
+  import_tasks: admin_client_certificate.yml
+- name: Include task list in play
+  import_tasks: admin_client_certificate.yml

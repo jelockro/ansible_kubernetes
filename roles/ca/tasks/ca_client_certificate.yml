@@ -1,0 +1,20 @@
+---
+# tasks file for ca
+- name: Create private key for CA
+  command: openssl genrsa -out ca.key 2048
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/ca.key"
+- name: Comment line starting with RANDFILE in /etc/ssl/openssl.cnf definition to avoid permission issues
+  shell: sed -i '0,/RANDFILE/{s/RANDFILE/\#&/}' /etc/ssl/openssl.cnf
+  become: yes
+- name: Create CSR using the private key
+  command: openssl req -new -key ca.key -subj "/CN=KUBERNETES-CA" -out ca.csr
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/ca.csr"
+- name: Self sign the csr using its own private key
+  command: openssl x509 -req -in ca.csr -signkey ca.key -CAcreateserial  -out ca.crt -days 1000
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/ca.crt"

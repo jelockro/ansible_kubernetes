@@ -1,0 +1,18 @@
+---
+# tasks file for ca
+- name: Generate private key for kube-controller-manager user
+  command: openssl genrsa -out kube-controller-manager.key 2048
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/kube-controller-manager.key"
+
+- name: Create CSR using the private key
+  command: openssl req -new -key kube-controller-manager.key -subj "/CN=system:kube-controller-manager" -out kube-controller-manager.csr
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/kube-controller-manager.csr"
+- name: Sign certificate for kube-controller-manager user using CA servers private key
+  command: openssl x509 -req -in kube-controller-manager.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out kube-controller-manager.crt -days 1000
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/kube-controller-manager.crt"

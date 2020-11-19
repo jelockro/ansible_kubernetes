@@ -1,0 +1,22 @@
+# vi: set ft=ruby
+
+# This file uses experimental vagrant feature documented here: https://www.vagrantup.com/docs/disks/usage
+# (This is to resolve issues with vagrant-disksize plugin not working)
+# You need to run it with VAGRANT_EXPERIMENTAL="disks" set in your environment, such as
+# VAGRANT_EXPERIMENTAL="disks" vagrant up
+
+Vagrant.configure("2") do |config|
+  config.vm.provision "shell", inline: "sudo apt-get update && sudo apt-get -y upgrade"
+
+  config.vm.define "ubuntu18" do |ubuntu18|
+    ubuntu18.vm.box = "ubuntu/bionic64"
+    ubuntu18.vm.provider "virtualbox" do |l|
+      l.cpus = 4
+      l.memory = "8192"
+    end
+    ubuntu18.vm.network "forwarded_port", guest: 8800, host: 8800
+    ubuntu18.vm.network "forwarded_port", guest: 8080, host: 8080
+    ubuntu18.vm.disk :disk, size: "100GB", primary: true
+
+  end
+end

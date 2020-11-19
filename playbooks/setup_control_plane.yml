@@ -1,0 +1,16 @@
+---
+## The server needs ssh-pass in order to connect with passwords
+
+- hosts: control_plane
+  vars:
+    kubernetes_version: 1.19.2
+    test: false
+    working_dir: ~/workspace/kube/ansible_pi_kube
+    user_group: "{{ ansible_user }}"
+  remote_user: root
+  gather_facts: false
+  tasks:
+    - name: Generate the control_plane kubeadm token
+      include_role:
+        name: roles/kube_raspi_ubuntu
+        tasks_from: control_plane.yml

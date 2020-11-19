@@ -1,0 +1,10 @@
+---
+# handlers file for kube_raspi_ubuntu
+- name: restart sysctl
+  command: sysctl --system
+  become: yes
+- name: a task
+  debug: msg="handlers are running"
+- name: enable docker service
+  command: systemctl enable docker.service
+  become: yes

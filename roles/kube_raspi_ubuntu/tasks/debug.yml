@@ -1,0 +1,15 @@
+---
+# Set hostname
+# - name: Set hostname from inventory
+#   hostname: 
+#     name: "{{ hostvars[item]['hostname'] }}"
+#     with_items:
+#       - "{{ hosts }}"
+- name: Test that hostname was set
+  shell: echo $HOSTNAME
+
+    # - name: dammit
+    #   debug: 
+    #     msg: "{{ hostvars[item]['hostname'] }}"
+    #   with_inventory_hostnames:
+    #     - worker_nodes

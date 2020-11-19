@@ -1,0 +1,28 @@
+---
+# tasks file for vagrant
+- name: Check if vagrant-{{ vagrant_version }} is installed
+  command: dpkg-query -W vagrant
+  register: vagrant_check_deb
+  failed_when: vagrant_check_deb.rc > 1
+  changed_when: vagrant_check_deb.rc == 1
+
+- name: Download Debian Vagrant installer from homelab-artifactory
+  get_url:
+    url: "{{ artifactory_url }}/artifactory/vagrant/{{ vagrant_version }}.deb"
+    dest: "{{ workspace }}"
+    username: jlockrow
+    password: '{{ artifactory_password }}'
+  when: vagrant_check_deb.rc == 1
+
+- name: Install Vagrant package
+  apt: deb="{{ workspace }}/{{ vagrant_version }}.deb"
+  become: yes
+  when: vagrant_check_deb.rc == 1
+
+- import_tasks: setup_for_wsl.yml
+  when: wsl == True
+
+
+
+
+

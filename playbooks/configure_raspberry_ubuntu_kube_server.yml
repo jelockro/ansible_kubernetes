@@ -1,0 +1,12 @@
+---
+## The server needs ssh-pass in order to connect with passwords
+
+- hosts: pi_kubes
+  vars:
+  remote_user: root
+  gather_facts: false
+  tasks:
+    - name: configure a raspberry pi arm64 ubuntu server to be a kube node
+      include_role:
+        name: roles/kube_raspi_ubuntu
+        tasks_from: main.yml

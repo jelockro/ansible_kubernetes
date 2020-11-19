@@ -1,0 +1,6 @@
+ssh_identity: user
+ansible_user: user
+ansible_password: user
+ansible_become_password: user
+sshpass: user
+artifactory_password: 'KIPnit!24'

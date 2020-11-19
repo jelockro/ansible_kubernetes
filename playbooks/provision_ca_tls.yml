@@ -1,0 +1,15 @@
+---
+- hosts: vm_mom
+  vars: 
+    host_key_checking: no
+    kubectl_url:  https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl
+  gather_facts: false
+  tasks:
+    - name: provision CA
+      include_role:
+        name: roles/ca
+        tasks_from: main.yml
+    - name: provision Admin Client Certificate
+      include_role:
+        name: roles/ca
+        tasks_from: admin_client_certificate.yml

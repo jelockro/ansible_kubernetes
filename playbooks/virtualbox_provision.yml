@@ -1,0 +1,30 @@
+---
+### If vagrant is not being used within wsl use the --skip-tags flag
+### example: ansible-playbook playbooks/virtualbox_provision.yml --extra-vars '{ "home_dir":"/home/jlock", "Nuke": True }' --skip-tags "wsl" 
+###
+- hosts: local
+  connection: local
+  vars:
+    vagrant_version: 2.2.9
+    artifactory_url: "http://192.168.1.242:8081"
+    wsl: True
+    wsl_clone_dir: "/mnt/c/Users/jlock/khw"
+    windows_home_mount: "/mnt/c/Users/jlock"
+  gather_facts: true
+  tasks:
+    - name: install & configure vagrant
+      include_role:
+        name: roles/vagrant
+        tasks_from: main.yml
+
+    - name: Clone kubernetes_the_hard_way repo 
+      include_role:
+        name: roles/kube_the_hardway_vbox
+        tasks_from: clone.yml
+
+    - name: Provision vagrant servers from 
+      include_role:
+        name: roles/kube_the_hardway_vbox
+        tasks_from: provision.yml
+      when: vm_provision == True
+

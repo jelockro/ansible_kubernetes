@@ -1,0 +1,61 @@
+---
+- name: Nuke all things vagrant and virtualbox
+  file:
+    path: "{{ windows_home_mount }}/{{ item }}"
+    state: absent
+  with_items: directories_to_nuke 
+  when: Nuke == True
+- name: Vagrant Halt
+  tags: wsl
+  environment:
+    VAGRANT_WSL_ENABLE_WINDOWS_ACCESS: "1"
+    VAGRANT_DISABLE_VBOXSYMLINKCREATE: "1"
+  shell: vagrant halt
+  args:
+    chdir: "{{ wsl_clone_dir }}/vagrant"
+  when: 
+    - wsl == True
+    - Nuke == True
+
+- name: Vagrant init
+  tags: wsl
+  environment:
+    VAGRANT_WSL_ENABLE_WINDOWS_ACCESS: "1"
+  shell: vagrant init
+  args:
+    chdir: "{{ wsl_clone_dir }}"
+    creates: "{{ wsl_clone_dir }}/vagrant/Vagrantfile"
+  when: wsl == True
+- name: Update Vagrantfile to turn off uart
+  tags: wsl
+  replace:
+    path: "{{ wsl_clone_dir }}/vagrant/Vagrantfile"
+    # after: 'vb\.cpus = 1'
+    before: 'end'
+    regexp: '(^\s+vb\.cpus\s=\s\d)(\n)(^\s+end)'
+    replace: '\1\2            vb.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]\n        end'
+# TODO: Support Windows
+# - name: Vagrant init
+#   tags: windows
+#   win_cmd: vagrant init
+#   args:
+#     chdir: "{{ windows_clone_dir }}"
+#   when: wsl == False
+
+# TODO: support vagrant up command
+- name: Vagrant up
+  tags: wsl
+  environment:
+    VAGRANT_WSL_ENABLE_WINDOWS_ACCESS: "1"
+    VAGRANT_DISABLE_VBOXSYMLINKCREATE: "1"
+  shell: vagrant up
+  args:
+    chdir: "{{ wsl_clone_dir }}/vagrant"
+  when: wsl == True
+# TODO: support windows
+# - name: Vagrant up
+#   tags: windows
+#   shell: vagrant up
+#   args:
+#     chdir: "{{ windows_clone_dir }}/vagrant"
+#   when: wsl == False

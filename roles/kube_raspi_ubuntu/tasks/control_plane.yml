@@ -1,0 +1,124 @@
+---
+# tasks file for kube_raspi_ubuntu::control_plane.yml
+- name: register token or create one if it doesn't exist.
+  block:
+    - name: check if token file exists
+      stat: 
+        path: /home/ubuntu/kube_control.token
+      register: control_token
+    - name: set token var if kube_control.token exists on host
+      shell: cat /home/ubuntu/kube_control.token 
+      register: register_token
+      when: control_token.stat.exists == true
+  rescue:
+    - name: generate kubeadm token
+      become: yes
+      shell: "kubeadm token generate | tee /home/ubuntu/kube_control.token"
+      args:
+        creates: /home/ubuntu/kube_control.token
+      register: register_token
+- set_fact:
+    token: "{{ register_token.stdout }}"
+- debug: var=token
+
+## block to run when in a non-test environment
+- block: 
+  - name: initialize control_plane
+    become: yes
+    shell: "kubeadm init --token={{ token }} --kubernetes-version={{ kubernetes_version }} --pod-network-cidr={{ pod_network_cidr }} --cgroup-driver=systemd"
+    args:
+      creates: /home/ubuntu/kube_init.log
+    register: kube_init
+    when: test == false
+  - debug: var=kube_init.stdout_lines[-2:]
+    when: test == false
+  - set_fact:
+      control_address: "{{ kube_init.stdout_lines[-2].split()[2] }}"
+      discovery_token_ca_cert_hash: "{{ kube_init.stdout_lines[-1].split()[1] }}" 
+  - name: copy kubectl_connection admin.conf file
+    become: yes
+    fetch:
+      src: /etc/kubernetes/admin.conf
+      dest: "{{ working_dir }}/roles/kube_raspi_ubuntu/files/etc/kubernetes/admin.conf"
+      flat: yes
+    when: test == false
+## block to run when testing playbook
+- block:
+  - name: initialize control_plane (TEST)
+    become: yes
+    shell: "kubeadm init --dry-run --token={{ token }} --kubernetes-version={{ kubernetes_version }} --pod-network-cidr={{ pod_network_cidr }}"
+    args:
+      creates: /home/ubuntu/kube_init.log
+    register: kube_init_test
+    when: test == true
+  - set_fact:
+      control_address: "{{ kube_init_test.stdout_lines[-2].split()[2] }}"
+      discovery_token_ca_cert_hash: "{{ kube_init_test.stdout_lines[-1].split()[1] }}"
+    when: test == true
+- debug:
+    msg: |
+      token                       : {{ token }}
+      control_address             : {{ control_address }}
+      discovery_token_ca_cert_hash: {{ discovery_token_ca_cert_hash }}
+- name: writes vars to ansible control host
+  template:
+    src: templates/kube_vars.j2
+    dest: "{{ working_dir }}/roles/kube_raspi_ubuntu/files/kube_vars.yml"
+  delegate_to: localhost
+
+#########################################
+# As regular user, setup control plane
+#########################################
+- name: create .kube directory
+  file:
+    path: $HOME/.kube
+    state: directory
+    # mode: "u=rw,g=wx,o=rwx"
+- name: create config file
+  file:
+    path: $HOME/.kube/config
+    state: touch
+    # mode: "u=rw,g=wx,o=rwx"
+- name: copy the admin.conf in local user .kube dir as config
+  copy: 
+    src: files/etc/kubernetes/admin.conf
+    dest: $HOME/.kube/config
+    owner: "{{ ansible_user }}"
+    group: "{{ user_group }}"
+
+    # mode: 0644
+  when: test == false
+# Test that the control plane is setup
+- name: test that the contol plane is setup
+  shell: "kubectl get nodes"
+  register: get_nodes
+- debug:
+    var: get_nodes.stdout_lines[-1]
+
+
+- name: install flannel
+  block: 
+    - name: save kube-flannel.yml
+      get_url:
+        url: https://raw.githubusercontent.com/coreos/flannel/v0.12.0/Documentation/kube-flannel.yml
+        dest: /home/ubuntu
+        mode: 0755
+        group: "{{ ansible_user }}"
+        owner: "{{ user_group }}"
+    - name: check if kube-flannel.yml exists
+      stat: 
+        path: /home/ubuntu/kube-flannel.yml
+      register: kube_flannel
+    - name: install flannel if kube_flannel.yml exists.
+      shell: cat /home/ubuntu/kube-flannel.yml | kubectl apply -f -
+      register: apply_flannel
+      when: kube_flannel.stat.exists == true
+##########################################
+## Install Podman & other container tools
+##########################################
+# sudo apt update
+# sudo apt-y install software-properties-common
+
+# - name: Add podman  repository from PPA and install its signing key on Ubuntu target
+#   apt_repository:
+#     repo: ppa:projectatomic/ppa

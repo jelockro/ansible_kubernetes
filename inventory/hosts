@@ -1,0 +1,54 @@
+[vbox_host]
+localhost
+
+[local]
+localhost
+
+[local:vars]
+ansible_connection=local
+ansible_user=jlock
+ansible_password=user
+ansible_become_password=user
+[vm_mom]
+192.168.5.11 ansible_ssh_private_key_file=/mnt/c/Users/jlock/khw/vagrant/.vagrant/machines/master-1/virtualbox/private_key
+
+[vm_master_nodes]
+192.168.5.12 ansible_ssh_private_key_file=/mnt/c/Users/jlock/khw/vagrant/.vagrant/machines/master-2/virtualbox/private_key
+192.168.5.11 ansible_ssh_private_key_file=/mnt/c/Users/jlock/khw/vagrant/.vagrant/machines/master-1/virtualbox/private_key
+
+[vm_load_balancer]
+192.168.5.30 ansible_ssh_private_key_file=/mnt/c/Users/jlock/khw/vagrant/.vagrant/machines/loadbalancer/virtualbox/private_key
+
+[vm_worker_nodes]
+192.168.5.21 ansible_ssh_private_key_file=/mnt/c/Users/jlock/khw/vagrant/.vagrant/machines/worker-1/virtualbox/private_key
+192.168.5.22 ansible_ssh_private_key_file=/mnt/c/Users/jlock/khw/vagrant/.vagrant/machines/worker-2/virtualbox/private_key
+
+[vm_nodes:children]
+vm_master_nodes
+vm_load_balancer
+vm_worker_nodes
+vm_mom
+
+[vm_nodes:vars]
+ansible_ssh_user=vagrant
+ansible_port=22
+
+
+[control_plane]
+192.168.1.185 hostname=kube-00
+
+[pi_master_nodes:children]
+vm_master_nodes
+control_plane
+
+
+[pi_worker_nodes]
+192.168.1.113 hostname=kube-01 
+192.168.1.217 hostname=kube-02
+
+[pi_kubes:children]
+control_plane
+pi_worker_nodes
+
+[debug]
+192.168.1.217 hostname=kube-02

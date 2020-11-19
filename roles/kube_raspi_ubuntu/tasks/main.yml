@@ -1,0 +1,115 @@
+---
+# tasks file for kube_raspi_ubuntu
+# Part 1: Basic changes to the server
+#
+######################
+# ssh-copy-id
+#######################
+- name: copy ssh identity to server to bypass passwords with ssh
+  shell: "sshpass -p  {{ sshpass }} ssh-copy-id -i {{ ssh_identity }} {{ ansible_user }}@{{item}}"
+  with_inventory_hostnames:
+    - debug
+  delegate_to: localhost
+
+##########################################
+# Change the hostname to reflect inventory
+###########################################
+- name: register the hostname of remote server
+  shell: "hostname"
+  register: hostnamectl
+- debug: "msg={{ hostnamectl.stdout }}"
+- name: change remote hostname to reflect hostvars hostname
+  become: yes
+  hostname:
+    name: "{{ hostname }}"
+  when: hostnamectl.stdout != hostname
+  register: updateHostname
+- name: check that host name is now correct
+  shell: "hostname"
+  register: hostnamectl_2
+  when: updateHostname.changed
+- debug: "msg={{ hostnamectl_2.stdout }}"
+  when: hostnamectl_2.changed
+##########
+# part 2: changes to prepare for kubernetes
+# Manually create backup because lineinfile 'backup' parameter fails"
+- name: "Backup /boot/firmware/cmdline.txt"
+  become: yes
+  become_user: root
+  copy:
+    src: /boot/firmware/cmdline.txt
+    remote_src: yes
+    dest: '/home/{{ ansible_user }}/cmdline.txt'
+    owner: "{{ ansible_user }}"
+    mode: 0644
+  changed_when: false
+
+- name: Appends cgroup configurations to /boot/firmware/cmdline.txt
+  become: yes
+  lineinfile:
+    dest: /boot/firmware/cmdline.txt
+    create: yes
+    regexp: '$'
+    line: "net.ifnames=0 dwc_otg.lpm_enable=0 console=serial0,115200 cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1 console=tty1 root=LABEL=writable rootfstype=ext4 elevator=deadline rootwait fixrtc"
+  register: cgroup_config
+
+- name: Reboot the server and wait for it to come back up, changes to cgroup.
+  become: yes
+  reboot:
+    msg: "Reboot initiated by Ansible"
+  when: cgroup_config.changed
+
+- name: Add an Apt signing key, will not download if present
+  become: yes
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add the Kubernetes repo
+  become: yes
+  lineinfile:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    line: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+    create: yes
+
+- name: installs packages
+  become: yes
+  apt: 
+    pkg: "{{ packages }}" 
+    update_cache: yes
+
+# Prevent ansible packages from being upgraded.
+- name: Prevent kubernetes packages from being upgraded
+  become: yes
+  dpkg_selections:
+      name: "{{ item }}"
+      selection: hold
+  with_items: "{{ apt_mark }}"
+
+- name: Placing the docker daemon configuration file...
+  become: yes
+  copy:
+    src: ../files/docker/daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Make sure docker service is running
+  systemd:
+    state: started
+    enabled: yes
+    name: docker.service
+  become: yes
+## Allows iptables to see bridged traffic
+- name: Placing the k8s.conf file in systcl.d...
+  become: yes
+  copy: 
+    src: ../files/k8s.conf
+    dest: /etc/sysctl.d
+    owner: root
+    group: root
+    mode: 0644
+  notify: 
+    - restart sysctl
+    - a task

@@ -1,0 +1,6 @@
+---
+kubernetes:
+  token: "ueflqc.bfv64y776a0zt9aw"
+  control_address: "192.168.1.185:6443"
+  discovery_token_ca_cert_hash: "sha256:00769d7ac28566206f860348100e25360e8a789ae8694beb3babb6bc0b3339dc"
+

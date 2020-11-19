@@ -1,0 +1,43 @@
+---
+# tasks file for vagrant and wsl
+- name:  "[WSL] Validate if a VAGRANT_WSL_ENABLE_WINDOWS_ACCESS line is present in .bashrc"
+  # become: yes
+  # become_user: root
+  tags: wsl
+  lineinfile:
+    path: "{{ home_dir }}/.bashrc"
+    line: "export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS=\"1\""
+    state: present
+    backup: yes
+  # check_mode: yes
+  register: wsl1out
+- name:  "[WSL] Validate if a VAGRANT_WSL_ENABLE_WINDOWS_ACCESS line is present in .bash_profile"
+  # become: yes
+  # become_user: root
+  tags: wsl
+  lineinfile:
+    path: "{{ home_dir }}/.bash_profile"
+    line: "export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS=\"1\""
+    state: present
+    backup: yes
+  # check_mode: yes
+  register: wsl1out
+- name: "[WSL] Update PATH to include host C:/Program Files in .bashrc"
+  tags: wsl
+  lineinfile:
+    path: "{{ home_dir }}/.bashrc"
+    line: "export PATH=\"$PATH:/mnt/c/Program Files/Oracle/VirtualBox\""
+    state: present
+    backup: yes
+  # check_mode: yes
+  register: wsl2out
+- name: "[WSL] Update PATH to include host C:/Program Files in .bash_profile"
+  tags: wsl
+  lineinfile:
+    path: "{{ home_dir }}/.bash_profile"
+    line: "export PATH=\"$PATH:/mnt/c/Program Files/Oracle/VirtualBox\""
+    state: present
+    backup: yes
+  # check_mode: yes
+  register: wsl2out
+

@@ -1,0 +1,15 @@
+---
+# vars file for kube_raspi_ubuntu
+packages:
+  - docker.io
+  - openjdk-11-jre
+  - kubelet
+  - kubeadm
+  - kubectl
+
+apt_mark:
+  - kubelet
+  - kubeadm
+  - kubectl
+
+pod_network_cidr: 10.193.0.0/16

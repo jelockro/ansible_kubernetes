@@ -1,0 +1,10 @@
+---
+- name: Vagrant init
+  tags: wsl
+  environment:
+    VAGRANT_WSL_ENABLE_WINDOWS_ACCESS: "1"
+  shell: vagrant init
+  args:
+    chdir: "{{ wsl_clone_dir }}"
+    creates: "{{ wsl_clone_dir }}/vagrant/Vagrantfile"
+  when: wsl == True

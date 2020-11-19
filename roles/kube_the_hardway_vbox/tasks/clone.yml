@@ -1,0 +1,19 @@
+---
+# tasks file for kube_the_hardway_vbox
+- name: Clone the 'kubernetes_the_hard_way' github repo
+  tags: wsl
+  git:
+    repo: "{{ git_repo_url }}"
+    dest: "{{ wsl_clone_dir }}"
+    force: yes
+    version: master...
+  when: wsl == True
+
+- name: Clone the 'kubernetes_the_hard_way' github repo
+  tags: windows
+  git:
+    repo: "{{ git_repo_url }}"
+    dest: "{{ windows_clone_dir }}"
+    force: yes
+    version: master...
+  when: wsl == False

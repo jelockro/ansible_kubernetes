@@ -1,0 +1,66 @@
+---
+# - hosts: local
+#   shell: ssh-copy-id -i ~/.ssh/home_rsa.pub 
+# - hosts: debug
+#   vars:
+#     sshpass: "{{ ansible_password }}"
+#     ansible_become_password: "{{ ansible_password }}"
+#   tasks:
+#     - name: install sshpass in order to run ssh-copy-id
+#       become: yes
+#       apt: 
+#         pkg: sshpass
+#         update_cache: yes
+
+- hosts: debug
+  gather_facts: false
+  vars:
+    sshpass: "{{ ansible_password }}"
+    user: "{{ ansible_user }}"
+    ansible_become_password: "{{ ansible_password }}"
+  tasks:
+   # - name: Set hostname from inventory
+#   hostname: 
+#     name: "{{ hostname }}"
+    - name: register the hostname of remote server
+      shell: "hostname"
+      register: hostnamectl
+    - debug: "msg={{ hostnamectl.stdout }}"
+    - name: change remote hostname to reflect hostvars hostname
+      become: yes
+      hostname:
+        name: "{{ hostname }}"
+      when: hostnamectl.stdout != hostname
+      register: updateHostname
+    - name: check that host name is now correct
+      shell: "hostname"
+      register: hostnamectl_2
+      when: updateHostname.changed
+    - debug: "msg={{ hostnamectl_2.stdout }}"
+      when: hostnamectl_2.changed
+    - name: ensure that kubeadm init worked, by checking port
+      shell: nc -z kube-00 6443 && echo 'ok'
+    - name: get hash value of ca certificate
+      shell: "openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'"
+    - name: remove node from cluster # do this on master
+      shell: kubectl drain node2 --delete-local-data --force --ignore-daemonsets && kubectl delete node node2
+    - name: remove node from cluster, what to run on worker
+      shell: kubeadm reset
+ifconfig cni0 down
+ip link delete cni0
+ifconfig flannel.1 down
+ip link delete flannel.1
+rm -rf /var/lib/cni/
+    - name: fix WARNING: No swap limit support
+      line-in-file: 
+        content: GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1" 
+        path: /etc/default/grub
+      OR
+        content: GRUB_CMDLINE_LINUX_DEFAULT="console=ttyS0 cgroup_enable=memory swapaccount=1"
+        path: /etc/default/grub.d/50-cloudimg-settings.cfg
+      shell: sudo update-grub
+###  Make sure that Cgroup driver is configured to be systemd on kubernetes init
+####
+# - name: Set hostname from inventory
+#   hostname: 
+#     name: "{{ hostname }}"

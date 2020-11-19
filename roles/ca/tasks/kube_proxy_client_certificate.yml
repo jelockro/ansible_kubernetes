@@ -1,0 +1,17 @@
+---
+# tasks file for ca
+- name: Generate private key for kube-proxy-manager user
+  command: openssl genrsa -out kube-proxy.key 2048
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/kube-proxy-manager.key"
+
+- name: Create CSR using the private key
+  command: openssl req -new -key kube-proxy.key -subj "/CN=system:kube-proxy" -out kube-proxy.csr
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/kube-proxy.csr"
+- name: Sign certificate for kube-proxy user using CA servers private key
+  command: openssl x509 -req -in kube-proxy.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-proxy.crt -days 1000
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/kube-proxy.crt"

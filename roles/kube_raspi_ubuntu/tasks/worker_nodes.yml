@@ -1,0 +1,26 @@
+---
+- name: check to see if kubelet.conf exists
+  stat:   
+    path: /etc/kubernetes/kubelet.conf
+  register: kubeletConf
+- name: lookup to create kubernetes dictionary
+  set_fact:
+    kubernetes: "{{ lookup('file', 'kube_vars.yml') | from_yaml }}"
+  when: kubeletConf.stat.exists == false
+- name: set facts from kubernetes dictionary
+  set_fact:
+    token: "{{ item.value.token }}"
+    control_address: "{{ item.value.control_address }}"
+    discovery_token_ca_cert_hash: "{{ item.value.discovery_token_ca_cert_hash }}"
+  when: kubeletConf.stat.exists == false
+  loop: "{{ query('dict', kubernetes) }}"
+  no_log: True
+- name: join kubernetes cluster
+  become: yes
+  shell:  "kubeadm join {{ control_address }} --token \"{{ token }}\" --discovery-token-ca-cert-hash \"{{ discovery_token_ca_cert_hash }}\""
+  args: 
+    creates: /home/ubuntu/kube_join.log
+  register: kube_join
+  when: kubeletConf.stat.exists == false
+- debug: var=kube_join.stdout
+  when: kubeletConf.stat.exists == false
