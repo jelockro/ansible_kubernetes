@@ -1,9 +1,11 @@
 ---
 # tasks file for ca
 
-- name: Include task list in play
+- name: Include ca_client_certificate task list in play
   import_tasks: ca_client_certificate.yml
-- name: Include task list in play
+- name: Include admin_client_certificate task list in play
   import_tasks: admin_client_certificate.yml
-- name: Include task list in play
-  import_tasks: admin_client_certificate.yml
+- name: Include controller_manager_client_certificate task list in play
+  import_tasks: controller_manager_client_certificate.yml
+- name: Include kube_proxy_client_certificate task list in play
+  import_tasks: kube_proxy_client_certificate.yml
