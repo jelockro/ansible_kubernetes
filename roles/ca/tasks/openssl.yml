@@ -4,4 +4,8 @@
   copy: 
     src: files/openssl.conf
     dest: "/home/{{ ansible_ssh_user }}/openssl.conf"
+- name: Copy openssl-etcd.conf to allow for alternate names
+  copy: 
+    src: files/openssl.conf
+    dest: "/home/{{ ansible_ssh_user }}/openssl-etcd.conf"
     

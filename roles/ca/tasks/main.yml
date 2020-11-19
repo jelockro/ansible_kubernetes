@@ -16,3 +16,5 @@
   import_tasks: scheduler_client_certificate.yml
 - name: Include kube_apiserver task list in play
   import_tasks: kube_apiserver.yml
+- name: Include etcd_server_certificate task list in play
+  import_tasks: etcd_server_certificate.yml

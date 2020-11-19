@@ -1,0 +1,19 @@
+---
+# tasks file for ca
+- name: Generate private key for etcd-server user
+  command: openssl genrsa -out etcd-server.key 2048
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/etcd-server.key"
+
+- name: Create CSR using the private key
+  command: openssl req -new -key etcd-server.key -subj "/CN=system:etcd-server" -out etcd-server.csr -config openssl-etcd.conf
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/etcd-server.csr"
+
+- name: Sign certificate for etcd-server user using CA servers private key
+  command: openssl x509 -req -in etcd-server.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out etcd-server.crt -extensions v3_req -extfile openssl-etcd.conf -days 1000
+  args: 
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/etcd-server.crt"
