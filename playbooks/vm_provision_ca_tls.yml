@@ -13,9 +13,29 @@
     include_role:
       name: roles/ca
       tasks_from: generate_kube_proxy_config.yml
-- hosts: vm_nodes
+  - name: generate kube-controller-manager.kubeconfig
+    include_role:
+      name: roles/ca
+      tasks_from: generate_kube_controller_config.yml 
+  - name: generate kube-scheduler.kubeconfig
+    include_role:
+      name: roles/ca
+      tasks_from: generate_kube_scheduler_config.yml
+- hosts: vm_worker_nodes
   tasks:    
   - name: Copy Remote-To-Remote (from vm-master-1 to worker-nodes)
     include_role:
       name: roles/ca
-      tasks_from: copy_certs.yml
+      tasks_from: copy_certs_and_configs_workers.yml
+- hosts: vm_master_nodes
+  tasks:    
+  - name: Copy Remote-To-Remote (from vm-master-1 to master-nodes)
+    include_role:
+      name: roles/ca
+      tasks_from: copy_certs_and_configs_masters.yml
+- hosts: vm_load_balancers
+  tasks:    
+  - name: Copy Remote-To-Remote (from vm-master-1 to loadbalancers)
+    include_role:
+      name: roles/ca
+      tasks_from: copy_certs_and_configs_loadbalancers.yml

@@ -10,3 +10,9 @@ certs:
   - service-account.crt
   - etcd-server.key 
   - etcd-server.crt
+worker_configs:
+  - kube-proxy.kubeconfig
+master_configs:
+  - admin.kubeconfig 
+  - kube-controller-manager.kubeconfig
+  - kube-scheduler.kubeconfig

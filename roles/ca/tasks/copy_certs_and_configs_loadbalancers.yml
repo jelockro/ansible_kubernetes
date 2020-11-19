@@ -1,5 +1,5 @@
 ---
-- name: Copy Remote-To-Remote (from vm-master-1 to worker-nodes)
+- name: Copy Remote-To-Remote (from vm-master-1 to loadbalancers)
   copy: 
     src: "/home/vagrant/{{ item }}" 
     dest: "/home/vagrant/{{ item }}"

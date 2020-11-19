@@ -20,6 +20,4 @@
   import_tasks: etcd_server_certificate.yml
 - name: Include service_account_certificate task list in play
   import_tasks: service_account_certificate.yml
-- name: Distribute certs
-  import_tasks: copy_certs.yml
-  
+

@@ -10,3 +10,9 @@
     chdir: "/home/{{ ansible_ssh_user }}"
     creates: "/home/{{ ansible_ssh_user }}/kube-proxy.kubeconfig"
   become: yes
+- name: changes file permissions
+  file:
+    path: "/home/{{ ansible_ssh_user }}/kube-proxy.kubeconfig"
+    owner: vagrant
+    group: vagrant
+  become: yes
