@@ -1,0 +1,32 @@
+---
+- name: Copy Remote-To-Remote (from vm-master-1 to loadbalancers)
+  copy: 
+    src: "/home/vagrant/{{ item }}" 
+    dest: "/home/vagrant/{{ item }}"
+    remote_src: yes
+  with_items: 
+    - "{{ certs }}"
+  delegate_to: "{{ mom }}"
+  when: role == "load_balancer"
+
+- name: Copy Remote-To-Remote (from vm-master-1 to master-nodes)
+  copy: 
+    src: "/home/vagrant/{{ item }}" 
+    dest: "/home/vagrant/{{ item }}"
+    remote_src: yes
+  with_items: 
+    - "{{ certs }}"
+    - "{{ master_configs }}"
+  delegate_to: "{{ mom }}"
+  when: role == "master_nodes"
+
+- name: Copy Remote-To-Remote (from vm-master-1 to worker-nodes)
+  copy: 
+    src: "/home/vagrant/{{ item }}" 
+    dest: "/home/vagrant/{{ item }}"
+    remote_src: yes
+  with_items: 
+    - "{{ certs }}"
+    - "{{ worker_configs }}"
+  delegate_to: "{{ mom }}"
+  when: role == "worker_nodes"

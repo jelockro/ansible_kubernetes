@@ -15,20 +15,26 @@
       tasks_from: generate_kubeconfigs.yml
 
 - hosts: vm_worker_nodes
+  vars:
+    role: worker_nodes
   tasks:    
   - name: Copy Remote-To-Remote (from vm-master-1 to worker-nodes)
     include_role:
       name: roles/ca
-      tasks_from: copy_certs_and_configs_workers.yml
+      tasks_from: copy_certs_and_configs.yml
 - hosts: vm_master_nodes
-  tasks:    
+  vars:
+    role: master_nodes
+  tasks: 
   - name: Copy Remote-To-Remote (from vm-master-1 to master-nodes)
     include_role:
       name: roles/ca
-      tasks_from: copy_certs_and_configs_masters.yml
+      tasks_from: copy_certs_and_configs.yml
 - hosts: vm_load_balancer
+  vars:
+    role: load_balancer
   tasks:    
   - name: Copy Remote-To-Remote (from vm-master-1 to loadbalancers)
     include_role:
       name: roles/ca
-      tasks_from: copy_certs_and_configs_loadbalancers.yml
+      tasks_from: copy_certs_and_configs.yml
