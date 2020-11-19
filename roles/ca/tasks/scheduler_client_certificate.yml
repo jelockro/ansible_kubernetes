@@ -14,4 +14,4 @@
   command: openssl x509 -req -in kube-scheduler.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-scheduler.crt -days 1000
   args: 
     chdir: "/home/{{ ansible_ssh_user }}"
-    creates: "/home/{{ ansible_ssh_user }}/kube-proxy.crt"
+    creates: "/home/{{ ansible_ssh_user }}/kube-scheduler.crt"
