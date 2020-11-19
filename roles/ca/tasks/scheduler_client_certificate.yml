@@ -1,0 +1,17 @@
+---
+# tasks file for ca
+- name: Generate private key for kube-scheduler user
+  command: openssl genrsa -out kube-scheduler.key 2048
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/kube-scheduler.key"
+- name: Create CSR using the private key
+  command: openssl req -new -key kube-scheduler.key -subj "/CN=system:kube-scheduler" -out kube-scheduler.csr
+  args:
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/kube-scheduler.csr"
+- name: Sign certificate for kube-scheduler user using CA servers private key
+  command: openssl x509 -req -in kube-scheduler.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-scheduler.crt -days 1000
+  args: 
+    chdir: "/home/{{ ansible_ssh_user }}"
+    creates: "/home/{{ ansible_ssh_user }}/kube-proxy.crt"

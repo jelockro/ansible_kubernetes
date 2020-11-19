@@ -9,3 +9,5 @@
   import_tasks: controller_manager_client_certificate.yml
 - name: Include kube_proxy_client_certificate task list in play
   import_tasks: kube_proxy_client_certificate.yml
+- name: Include scheduler_client_certificate task list in play
+  import_tasks: scheduler_client_certificate.yml
